@@ -1,447 +1,183 @@
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  ViewBase,
-} from "react-native";
 import React, { useState, useEffect } from "react";
-import { AntDesign, Feather } from "@expo/vector-icons";
-import { BottomModal } from "react-native-modals";
-import { ModalTitle, ModalContent } from "react-native-modals";
-import { SlideAnimation } from "react-native-modals";
-import { Entypo, FontAwesome } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Pressable, TextInput, StyleSheet, ScrollView, Modal, Alert } from "react-native";
 import axios from "axios";
-import { MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, FontAwesome } from "@expo/vector-icons";
 
-import moment from "moment";
-import { useRouter } from "expo-router";
+const API_URL = "https://todolist-b8hr.onrender.com";
 
-const index = () => {
-    const router = useRouter();
+const Index = () => {
   const [todos, setTodos] = useState([]);
-  const today = moment().format("MMM Do");
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [category, setCategory] = useState("All");
-  const [todo, setTodo] = useState("");
-  const [pendingTodos, setPendingTodos] = useState([]);
-  const [completedTodos, setCompletedTodos] = useState([]);
-  const [marked, setMarked] = useState(false);
-  const suggestions = [
-    {
-      id: "0",
-      todo: "Drink Water, keep healthy",
-    },
-    {
-      id: "1",
-      todo: "Go Excercising",
-    },
-    {
-      id: "2",
-      todo: "Go to bed early",
-    },
-    {
-      id: "3",
-      todo: "Take pill reminder",
-    },
-    {
-      id: "4",
-      todo: "Go Shopping",
-    },
-    {
-      id: "5",
-      todo: "finish assignments",
-    },
-  ];
-  const addTodo = async () => {
-    try {
-      const todoData = {
-        title: todo,
-        category: category,
-      };
+  const [newTodoTitle, setNewTodoTitle] = useState("");
+  const [selectedTodo, setSelectedTodo] = useState(null);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [updatedTodoTitle, setUpdatedTodoTitle] = useState("");
 
-      axios
-        .post("https://todolist-b8hr.onrender.com/todos/6583eea7c5bc35503ef0f5ae", todoData)
-        .then((response) => {
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log("error", error);
-        });
-
-      await getUserTodos();
-      setModalVisible(false);
-      setTodo("");
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
   useEffect(() => {
-    getUserTodos();
-  }, [marked, isModalVisible]);
-  const getUserTodos = async () => {
+    fetchTodos();
+  }, []);
+
+  const fetchTodos = async () => {
     try {
-      const response = await axios.get(
-        `https://todolist-b8hr.onrender.com/users/6583eea7c5bc35503ef0f5ae/todos`
-      );
-
-      console.log(response.data.todos);
-      setTodos(response.data.todos);
-
-      const fetchedTodos = response.data.todos || [];
-      const pending = fetchedTodos.filter(
-        (todo) => todo.status !== "completed"
-      );
-
-      const completed = fetchedTodos.filter(
-        (todo) => todo.status === "completed"
-      );
-
-      setPendingTodos(pending);
-      setCompletedTodos(completed);
+      const response = await axios.get(`${API_URL}/getAll/Todos`);
+      setTodos(response.data);
     } catch (error) {
-      console.log("error", error);
+      console.error("Error fetching To-Dos:", error.message);
     }
   };
-  const markTodoAsCompleted = async (todoId) => {
+
+  const createTodo = async () => {
     try {
-      setMarked(true);
-      const response = await axios.patch(
-        `https://todolist-b8hr.onrender.com/todos/${todoId}/complete`
-      );
-      console.log(response.data);
+      await axios.post(`${API_URL}/PostTodos/Todos`, { title: newTodoTitle });
+      fetchTodos();
+      setNewTodoTitle("");
+      showAlert("To-Do created successfully");
     } catch (error) {
-      console.log("error", error);
+      console.error("Error creating To-Do:", error.message);
     }
   };
-  console.log("completed", completedTodos);
-  console.log("pending", pendingTodos);
+
+  const deleteTodo = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/delete/Todos/${id}`);
+      fetchTodos();
+      showAlert("To-Do deleted successfully");
+    } catch (error) {
+      console.error("Error deleting To-Do:", error.message);
+    }
+  };
+
+  const openUpdateModal = (todo) => {
+    setSelectedTodo(todo);
+    setUpdatedTodoTitle(todo.title);
+    setUpdateModalVisible(true);
+  };
+
+  const closeUpdateModal = () => {
+    setUpdateModalVisible(false);
+    setSelectedTodo(null);
+    setUpdatedTodoTitle("");
+  };
+
+  const updateTodo = async () => {
+    try {
+      await axios.put(`${API_URL}/update/Todos/${selectedTodo._id}`, {
+        title: updatedTodoTitle,
+        completed: selectedTodo.completed,
+      });
+      fetchTodos();
+      closeUpdateModal();
+      showAlert("To-Do updated successfully");
+    } catch (error) {
+      console.error("Error updating To-Do:", error.message);
+    }
+  };
+
+  const showAlert = (message) => {
+    Alert.alert("Success", message, [{ text: "OK" }]);
+  };
+
   return (
-    <>
-      <View
-        style={{
-          marginHorizontal: 10,
-          marginVertical: 10,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <Pressable
-          style={{
-            backgroundColor: "#7CB9E8",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 25,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "white", textAlign: "center" }}>All</Text>
-        </Pressable>
-        <Pressable
-          style={{
-            backgroundColor: "#7CB9E8",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 25,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "white", textAlign: "center" }}>Work</Text>
-        </Pressable>
-        <Pressable
-          style={{
-            backgroundColor: "#7CB9E8",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 25,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: "auto",
-          }}
-        >
-          <Text style={{ color: "white", textAlign: "center" }}>Personal</Text>
-        </Pressable>
-        <Pressable onPress={() => setModalVisible(!isModalVisible)}>
+    <ScrollView>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter a new To-Do"
+          value={newTodoTitle}
+          onChangeText={(text) => setNewTodoTitle(text)}
+        />
+        <Pressable style={styles.addButton} onPress={createTodo}>
           <AntDesign name="pluscircle" size={30} color="#007FFF" />
         </Pressable>
       </View>
 
-      <ScrollView style={{ flex: 1, backgroundColor: "white" }}>
-        <View style={{ padding: 10 }}>
-          {todos?.length > 0 ? (
-            <View>
-              {pendingTodos?.length > 0 && <Text>Tasks to Do! {today}</Text>}
-
-              {pendingTodos?.map((item, index) => (
-                <Pressable
-                onPress={() => {
-                    router?.push({
-                      pathname: "/home/info",
-                      params: {
-                        id: item._id,
-                        title: item?.title,
-                        category: item?.category,
-                        createdAt: item?.createdAt,
-                        dueDate: item?.dueDate,
-                      },
-                    });
-                  }}
-                  style={{
-                    backgroundColor: "#E0E0E0",
-                    padding: 10,
-                    borderRadius: 7,
-                    marginVertical: 10,
-                  }}
-                  key={index}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 10,
-                    }}
-                  >
-                    <Entypo
-                      onPress={() => markTodoAsCompleted(item?._id)}
-                      name="circle"
-                      size={18}
-                      color="black"
-                    />
-                    <Text style={{ flex: 1 }}>{item?.title}</Text>
-                    <Feather name="flag" size={20} color="black" />
-                  </View>
-                </Pressable>
-              ))}
-
-              {completedTodos?.length > 0 && (
-                <View>
-                  <View
-                    style={{
-                      justifyContent: "center",
-                      alignItems: "center",
-                      margin: 10,
-                    }}
-                  >
-                    <Image
-                      style={{ width: 100, height: 100 }}
-                      source={{
-                        uri: "https://cdn-icons-png.flaticon.com/128/6784/6784655.png",
-                      }}
-                    />
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 5,
-                      marginVertical: 10,
-                    }}
-                  >
-                    <Text>Completed Tasks</Text>
-                    <MaterialIcons
-                      name="arrow-drop-down"
-                      size={24}
-                      color="black"
-                    />
-                  </View>
-
-                  {completedTodos?.map((item, index) => (
-                    <Pressable
-                      style={{
-                        backgroundColor: "#E0E0E0",
-                        padding: 10,
-                        borderRadius: 7,
-                        marginVertical: 10,
-                      }}
-                      key={index}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 10,
-                        }}
-                      >
-                        <FontAwesome name="circle" size={18} color="gray" />
-                        <Text
-                          style={{
-                            flex: 1,
-                            textDecorationLine: "line-through",
-                            color: "gray",
-                          }}
-                        >
-                          {item?.title}
-                        </Text>
-                        <Feather name="flag" size={20} color="gray" />
-                      </View>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
-          ) : (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: 130,
-                marginLeft: "auto",
-                marginRight: "auto",
-              }}
-            >
-              <Image
-                style={{ width: 200, height: 200, resizeMode: "contain" }}
-                source={{
-                  uri: "https://cdn-icons-png.flaticon.com/128/2387/2387679.png",
-                }}
-              />
-              <Text
-                style={{
-                  fontSize: 16,
-                  marginTop: 15,
-                  fontWeight: "600",
-                  textAlign: "center",
-                }}
-              >
-                No Tasks for today! add a task
-              </Text>
-              <Pressable
-                onPress={() => setModalVisible(!isModalVisible)}
-                style={{ marginTop: 15 }}
-              >
-                <AntDesign name="pluscircle" size={30} color="#007FFF" />
-              </Pressable>
-            </View>
-          )}
-        </View>
+      <ScrollView>
+        {todos.map((todo) => (
+          <View key={todo._id} style={styles.todoItem}>
+            <Text style={{ flex: 1 }}>{todo.title}</Text>
+            <Pressable onPress={() => openUpdateModal(todo)}>
+              <FontAwesome name="pencil-square-o" size={24} color="#007FFF" />
+            </Pressable>
+            <Pressable onPress={() => deleteTodo(todo._id)}>
+              <FontAwesome name="trash" size={24} color="#FF0000" />
+            </Pressable>
+          </View>
+        ))}
       </ScrollView>
 
-      <BottomModal
-        onBackdropPress={() => setModalVisible(!isModalVisible)}
-        onHardwareBackPress={() => setModalVisible(!isModalVisible)}
-        swipeDirection={["up", "down"]}
-        swipeThreshold={200}
-        modalTitle={<ModalTitle title="Add a todo" />}
-        modalAnimation={
-          new SlideAnimation({
-            slideFrom: "bottom",
-          })
-        }
-        visible={isModalVisible}
-        onTouchOutside={() => setModalVisible(!isModalVisible)}
-      >
-        <ModalContent style={{ width: "100%", height: 280 }}>
-          <View
-            style={{
-              marginVertical: 10,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <TextInput
-              value={todo}
-              onChangeText={(text) => setTodo(text)}
-              placeholder="Input a new task here"
-              style={{
-                padding: 10,
-                borderColor: "#E0E0E0",
-                borderWidth: 1,
-                borderRadius: 5,
-                flex: 1,
-              }}
-            />
-            <Ionicons onPress={addTodo} name="send" size={24} color="#007FFF" />
-          </View>
-
-          <Text>Choose Category</Text>
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-              marginVertical: 10,
-            }}
-          >
-            <Pressable
-              onPress={() => setCategory("Work")}
-              style={{
-                borderColor: "#E0E0E0",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderRadius: 25,
-              }}
-            >
-              <Text>Work</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setCategory("Personal")}
-              style={{
-                borderColor: "#E0E0E0",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderRadius: 25,
-              }}
-            >
-              <Text>Personal</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setCategory("WishList")}
-              style={{
-                borderColor: "#E0E0E0",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderRadius: 25,
-              }}
-            >
-              <Text>WishList</Text>
-            </Pressable>
-          </View>
-
-          <Text>Some sugggestions</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-              flexWrap: "wrap",
-              marginVertical: 10,
-            }}
-          >
-            {suggestions?.map((item, index) => (
-              <Pressable
-                onPress={() => setTodo(item?.todo)}
-                style={{
-                  backgroundColor: "#F0F8FF",
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  borderRadius: 25,
-                }}
-                key={index}
-              >
-                <Text style={{ textAlign: "center" }}>{item?.todo}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </ModalContent>
-      </BottomModal>
-    </>
+      {/* Update Todo Modal */}
+      <Modal visible={updateModalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Update To-Do"
+            value={updatedTodoTitle}
+            onChangeText={(text) => setUpdatedTodoTitle(text)}
+          />
+          <Pressable style={styles.updateButton} onPress={updateTodo}>
+            <Text style={{ color: "white" }}>Update</Text>
+          </Pressable>
+          <Pressable style={styles.cancelButton} onPress={closeUpdateModal}>
+            <Text style={{ color: "white" }}>Cancel</Text>
+          </Pressable>
+        </View>
+      </Modal>
+    </ScrollView>
   );
 };
 
-export default index;
+const styles = StyleSheet.create({
+  inputContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginHorizontal: 10,
+    marginVertical: 10,
+    backgroundColor: "#eee",
+    padding: 10,
+    borderRadius: 8,
+  },
+  input: {
+    flex: 1,
+    marginRight: 10,
+    padding: 8,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  addButton: {
+    backgroundColor: "#7CB9E8",
+    padding: 8,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  todoItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  updateButton: {
+    backgroundColor: "#007FFF",
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#FF0000",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
-const styles = StyleSheet.create({});
+export default Index;

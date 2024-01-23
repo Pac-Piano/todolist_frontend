@@ -1,161 +1,178 @@
-import { Image, StyleSheet, Text, View, Dimensions } from "react-native";
 import React, { useState, useEffect } from "react";
+import { Image, StyleSheet, Text, View, Pressable, FlatList, Alert, Button } from "react-native";
 import axios from "axios";
-import { LineChart } from "react-native-chart-kit";
+import Image1 from "../home/gakuru.jpg";
 
-const index = () => {
-  const [completedTasks, setCompletedTasks] = useState(0);
-  const [pendingTasks, setPendingTasks] = useState(0);
+const Index = () => {
+  const [pendingTasks, setPendingTasks] = useState([]);
+  const [completedTasks, setCompletedTasks] = useState([]);
 
-  const fetchTaskData = async () => {
+  const handleStatusChange = async (id, newStatus) => {
     try {
-      const response = await axios.get("https://todolist-b8hr.onrender.com/todos/count");
-      const { totalCompletedTodos, totalPendingTodos } = response.data;
-      setCompletedTasks(totalCompletedTodos);
-      setPendingTasks(totalPendingTodos);
+      const response = await axios.put(`https://todolist-b8hr.onrender.com/changeStatusTocompleted/${id}`, {
+        status: newStatus,
+      });
+
+      if (response.data) {
+        Alert.alert("Success", `Task status changed to ${newStatus}`);
+        // Refresh the task lists
+        fetchTasks();
+      } else {
+        Alert.alert("Error", "Failed to change task status");
+      }
     } catch (error) {
-      console.log("error", error);
+      console.error("Error changing status:", error.message);
+      Alert.alert("Error", "Failed to change task status");
     }
   };
-  useEffect(() => {
-    fetchTaskData();
-  }, []);
-  console.log("comp", completedTasks);
-  console.log("pending", pendingTasks);
-  return (
-    <View style={{ padding: 10, flex: 1, backgroundColor: "white" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Image
-          style={{ width: 60, height: 60, borderRadius: 30 }}
-          source={{
-            uri: "https://lh3.googleusercontent.com/ogw/ANLem4Zmk7fohWyH7kB6YArqFy0WMfXnFtuX3PX3LSBf=s64-c-mo",
-          }}
-        />
-        <View>
-          <Text style={{ fontSize: 16, fontWeight: "600" }}>
-            Keep plans for 15 days
-          </Text>
-          <Text style={{ fontSize: 15, color: "gray", marginTop: 4 }}>
-            Select Categories
-          </Text>
-        </View>
-      </View>
 
-      <View style={{ marginVertical: 12 }}>
-        <Text>Tasks Overview</Text>
+  const fetchTasks = () => {
+    // Fetch pending tasks
+    axios.get("https://todolist-b8hr.onrender.com/getPending/Todos")
+      .then(response => setPendingTasks(response.data))
+      .catch(error => console.error("Error fetching pending tasks:", error));
+
+    // Fetch completed tasks
+    axios.get("https://todolist-b8hr.onrender.com/getCompleted/Todos")
+      .then(response => setCompletedTasks(response.data))
+      .catch(error => console.error("Error fetching completed tasks:", error));
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "white" }}>
+      <View style={{ padding: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Image
+            style={{ width: 60, height: 60, borderRadius: 30 }}
+            source={Image1}
+          />
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: "600" }}>
+              Pending and Completed Tasks
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ marginVertical: 12 }}>
+          <Text>Tasks Overview</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              marginVertical: 8,
+            }}
+          >
+
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginVertical: 8 }}>
+              <View
+                style={{
+                  backgroundColor: "#89CFF0",
+                  padding: 10,
+                  borderRadius: 8,
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ textAlign: "center", fontSize: 16, fontWeight: "bold" }}>
+                  {pendingTasks.length}
+                </Text>
+                <Text style={{ marginTop: 4 }}>Pending tasks</Text>
+              </View>
+
+              <View
+                style={{
+                  backgroundColor: "#89CFF0",
+                  padding: 10,
+                  borderRadius: 8,
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ textAlign: "center", fontSize: 12, fontWeight: "bold" }}>
+                  {completedTasks.length}
+                </Text>
+                <Text style={{ marginTop: 4 }}>Completed tasks</Text>
+              </View>
+            </View>
+
+          </View>
+        </View>
+
         <View
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 6,
-            marginVertical: 8,
+            backgroundColor: "#89CFF0",
+            padding: 10,
+            borderRadius: 6,
+            marginTop: 15,
           }}
         >
-          <View
-            style={{
-              backgroundColor: "#89CFF0",
-              padding: 10,
-              borderRadius: 8,
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{ textAlign: "center", fontSize: 16, fontWeight: "bold" }}
-            >
-              {completedTasks}
+          <Pressable>
+            <Text style={{ textAlign: "center", color: "white" }}>
+              Completed Task and pending Task
             </Text>
-            <Text style={{ marginTop: 4 }}>completed tasks</Text>
-          </View>
-
-          <View
-            style={{
-              backgroundColor: "#89CFF0",
-              padding: 10,
-              borderRadius: 8,
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{ textAlign: "center", fontSize: 16, fontWeight: "bold" }}
-            >
-              {pendingTasks}
-            </Text>
-            <Text style={{ marginTop: 4 }}>pending tasks</Text>
-          </View>
+          </Pressable>
         </View>
-      </View>
 
-      <LineChart
-        data={{
-          labels: ["Pending Tasks", "Completed Tasks"],
-          datasets: [
-            {
-              data: [pendingTasks, completedTasks],
-            },
-          ],
-        }}
-        width={Dimensions.get("window").width - 20} // from react-native
-        height={220}
-        // yAxisLabel="$"
-        // yAxisSuffix="k"
-        yAxisInterval={2} // optional, defaults to 1
-        chartConfig={{
-          backgroundColor: "#e26a00",
-          backgroundGradientFrom: "#fb8c00",
-          backgroundGradientTo: "#ffa726",
-          decimalPlaces: 2, // optional, defaults to 2dp
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-          propsForDots: {
-            r: "6",
-            strokeWidth: "2",
-            stroke: "#ffa726",
-          },
-        }}
-        bezier
-        style={{
-          borderRadius: 16,
-        }}
-      />
-
-      <View
-        style={{
-          backgroundColor: "#89CFF0",
-          padding: 10,
-          borderRadius: 6,
-          marginTop: 15,
-        }}
-      >
-        <Text style={{ textAlign: "center", color: "white" }}>
-          Tasks for the next seven days
-        </Text>
-      </View>
-
-      <View
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          marginTop: 20,
-        }}
-      >
-        <Image
-          style={{ width: 120, height: 120 }}
-          source={{
-            uri: "https://cdn-icons-png.flaticon.com/128/9537/9537221.png",
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 20,
           }}
-        />
+        >
+          <Text style={{ fontWeight: "bold", fontSize: 12 }}>Pending Tasks:</Text>
+          <FlatList
+            data={pendingTasks}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <View style={styles.taskItem}>
+                <Text>{item.title}</Text>
+                <Text style={{ color: "orange", marginLeft: 10, marginRight: 5 }}>{item.status}</Text>
+                <Button
+                  title="Complete"
+                  onPress={() => handleStatusChange(item._id, "completed")}
+                  color="green"
+                  style={{ fontSize: 5, padding: 5 }}
+                />
+              </View>
+            )}
+          />
+
+          <Text style={{ fontWeight: "bold", fontSize: 12, marginTop: 20 }}>
+            Completed Tasks:
+          </Text>
+          <FlatList
+            data={completedTasks}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <View style={styles.taskItem}>
+                <Text>{item.title}</Text>
+                <Text style={{ color: "green", marginLeft: 10 }}>{item.status}</Text>
+              </View>
+            )}
+          />
+        </View>
       </View>
     </View>
   );
 };
 
-export default index;
+const styles = StyleSheet.create({
+  taskItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+});
 
-const styles = StyleSheet.create({});
+export default Index;

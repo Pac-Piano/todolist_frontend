@@ -49,15 +49,13 @@ const login = () => {
       style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}
     >
       <View style={{ marginTop: 80 }}>
-        <Text style={{ fontSize: 18, fontWeight: "600", color: "#0066b2" }}>
-          TODO-LIST TRACKER
+      <Text style={{ fontSize: 30, fontWeight: "900", color: "green" }}>
+      TaskKeeper App
         </Text>
       </View>
       <KeyboardAvoidingView>
         <View style={{ alignItems: "center" }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 20 }}>
-            Log in to your account
-          </Text>
+
         </View>
 
         <View style={{ marginTop: 70 }}>
@@ -131,9 +129,7 @@ const login = () => {
             }}
           >
             <Text>Keep me logged in</Text>
-            <Text style={{ color: "#007FFF", fontWeight: "500" }}>
-              Forgot Password
-            </Text>
+
           </View>
 
           <View style={{ marginTop: 60 }} />
@@ -142,7 +138,7 @@ const login = () => {
             onPress={handleLogin}
             style={{
               width: 200,
-              backgroundColor: "#6699CC",
+              backgroundColor: "green",
               padding: 15,
               borderRadius: 6,
               marginLeft: "auto",
@@ -165,8 +161,8 @@ const login = () => {
             onPress={() => router.replace("/register")}
             style={{ marginTop: 15 }}
           >
-            <Text style={{ textAlign: "center", fontSize: 15, color: "gray" }}>
-              Don't have an account? Sign up
+            <Text style={{ textAlign: "center", fontSize: 15, color: "blue" }}>
+              Don't have an account? Sign Up
             </Text>
           </Pressable>
         </View>

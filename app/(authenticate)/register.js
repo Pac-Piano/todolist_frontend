@@ -42,15 +42,13 @@ import axios from "axios";
         style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}
       >
         <View style={{ marginTop: 80 }}>
-          <Text style={{ fontSize: 18, fontWeight: "600", color: "#0066b2" }}>
-            TODO-LIST TRACKER
+          <Text style={{ fontSize: 30, fontWeight: "900", color: "green" }}>
+          TaskKeeper App
           </Text>
         </View>
         <KeyboardAvoidingView>
           <View style={{ alignItems: "center" }}>
-            <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 20 }}>
-              register  to your account
-            </Text>
+
           </View>
   
           <View style={{ marginTop: 70 }}>
@@ -147,7 +145,7 @@ import axios from "axios";
             onPress={handleRegister}
               style={{
                 width: 200,
-                backgroundColor: "#6699CC",
+                backgroundColor: "green",
                 padding: 15,
                 borderRadius: 6,
                 marginLeft: "auto",
@@ -167,8 +165,8 @@ import axios from "axios";
             </Pressable>
   
             <Pressable onPress={() => router.replace("/login")} style={{ marginTop: 15 }}>
-              <Text style={{ textAlign: "center", fontSize: 15, color: "gray" }}>
-               Already have an account? sign Up
+              <Text style={{ textAlign: "center", fontSize: 15, color: "blue" }}>
+               Already have an account? sign In
               </Text>
             </Pressable>
           </View>
